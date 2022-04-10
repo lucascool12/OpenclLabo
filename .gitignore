@@ -1,0 +1,7 @@
+cat.png
+imagenet_labels.h
+*.o
+stb_image.h
+*.exe
+vgg16_weights.txt
+result.txt

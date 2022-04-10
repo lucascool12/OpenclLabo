@@ -10,35 +10,39 @@
 #define MEM_BLOCK_DEPTH 512
 
 __kernel void inner_convolutie3x3(__global float *zeropad, int size,
-                                  __global float *kern, __global float *out) {
+                                  __global float *kern, __global float *out/*,
+                                  int weights_offset, int output_offset*/) {
 
-  float sum = 0;
+	float sum = 0;
 
-  const int j = get_global_id(0);
-  const int i = get_global_id(1);
-  
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
 
-//   float zeropad[(SIZE + 2) * 3] = {{0.}};
-//   int eersteLeeg = 1;
-//   if(i == 0)
-//         eersteLeeg = 0;
+  //   __global float *kern = &kernFull[CONV_SIZE * CONV_SIZE * weights_offset];
+  //   __global float *out = &outFull[size * size * output_offset];
 
-//   for (int ii = i; ii < 2 - eersteLeeg; ii++) {
-//     for (int jj = j; jj < size; jj++) {
-//             zeropad[(ii - i + 1)*(SIZE + 2) + jj - j + eersteLeeg] = matrix[ii*(size) + jj];
-//     }
-//   }
+  //   float zeropad[(SIZE + 2) * 3] = {{0.}};
+  //   int eersteLeeg = 1;
+  //   if(i == 0)
+  //         eersteLeeg = 0;
 
-  sum = zeropad[i * (SIZE + 2) + j] * kern[0] +
-        zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE] +
-        zeropad[(i + 2) * (SIZE + 2) + j] * kern[2 * CONV_SIZE] +
-        zeropad[i * (SIZE + 2) + j + 1] * kern[1] +
-        zeropad[(i + 1) * (SIZE + 2) + j + 1] * kern[1 + CONV_SIZE] +
-        zeropad[(i + 2) * (SIZE + 2) + j + 1] * kern[1 + 2 * CONV_SIZE] +
-        zeropad[i * (SIZE + 2) + j + 2] * kern[2] +
-        zeropad[(i + 1) * (SIZE + 2) + j + 2] * kern[2 + 1 * CONV_SIZE] +
-        zeropad[(i + 2) * (SIZE + 2) + j + 2] * kern[2 + 2 * CONV_SIZE];
-  out[size * i + j] += sum;
+  //   for (int ii = i; ii < 2 - eersteLeeg; ii++) {
+  //     for (int jj = j; jj < size; jj++) {
+  //             zeropad[(ii - i + 1)*(SIZE + 2) + jj - j + eersteLeeg] =
+  //             matrix[ii*(size) + jj];
+  //     }
+  //   }
+
+	sum = zeropad[i * (SIZE + 2) + j] * kern[0] +
+		zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE] +
+		zeropad[(i + 2) * (SIZE + 2) + j] * kern[2 * CONV_SIZE] +
+		zeropad[i * (SIZE + 2) + j + 1] * kern[1] +
+		zeropad[(i + 1) * (SIZE + 2) + j + 1] * kern[1 + CONV_SIZE] +
+		zeropad[(i + 2) * (SIZE + 2) + j + 1] * kern[1 + 2 * CONV_SIZE] +
+		zeropad[i * (SIZE + 2) + j + 2] * kern[2] +
+		zeropad[(i + 1) * (SIZE + 2) + j + 2] * kern[2 + 1 * CONV_SIZE] +
+		zeropad[(i + 2) * (SIZE + 2) + j + 2] * kern[2 + 2 * CONV_SIZE];
+	out[size * i + j] += sum;
 
   //   if(i > 0 && j > 0)
   //         sum += zeropad[i * (SIZE + 2) + j] * kern[0];
@@ -67,11 +71,24 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
   //   out[size * i + j] += sum;
 }
 
+__kernel void zeropadConv(__global float *matrix, int size,
+                          __global float *zeropad /*, int input_offset*/) {
+	const int i = get_global_id(0);
+	const int j = get_global_id(1);
 
-__kernel void zeropadConv(__global float *matrix,int size ,__global float *zeropad){
-        const int i = get_global_id(0);
-        const int j = get_global_id(1);
-        zeropad[(i + 1)*(SIZE + 2) + j + 1] = matrix[i*size + j];
+	// __global float *matrix = &matrixFull[size * size * input_offset];
+
+	zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
+}
+
+__kernel void add_bias_and_relu(int size, __global float *out, float bs) {
+
+	const int i = get_global_id(0);
+	const int j = get_global_id(1);
+
+	out[i * size + j] += bs;
+	if (out[i * size + j] < 0.0f)
+		out[i * size + j] = 0.0f;
 }
 
 /*kernel void convolutie3x3(
