@@ -10,16 +10,16 @@
 #define MEM_BLOCK_DEPTH 512
 
 __kernel void inner_convolutie3x3(__global float *zeropad, int size,
-                                  __global float *kern, __global float *out/*,
-                                  int weights_offset, int output_offset*/) {
+                                  __global float *kernFull, __global float *outFull,
+                                  int weights_offset, int output_offset) {
 
 	float sum = 0;
 
 	const int j = get_global_id(0);
 	const int i = get_global_id(1);
 
-  //   __global float *kern = &kernFull[CONV_SIZE * CONV_SIZE * weights_offset];
-  //   __global float *out = &outFull[size * size * output_offset];
+//     __global float *kern = &kernFull[CONV_SIZE * weights_offset];
+//     __global float *out = &outFull[size * output_offset];
 
   //   float zeropad[(SIZE + 2) * 3] = {{0.}};
   //   int eersteLeeg = 1;
@@ -33,31 +33,18 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
   //     }
   //   }
 
-	sum = zeropad[i * (SIZE + 2) + j] * kern[0] +
-		zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE] +
-		zeropad[(i + 2) * (SIZE + 2) + j] * kern[2 * CONV_SIZE] +
-		zeropad[i * (SIZE + 2) + j + 1] * kern[1] +
-		zeropad[(i + 1) * (SIZE + 2) + j + 1] * kern[1 + CONV_SIZE] +
-		zeropad[(i + 2) * (SIZE + 2) + j + 1] * kern[1 + 2 * CONV_SIZE] +
-		zeropad[i * (SIZE + 2) + j + 2] * kern[2] +
-		zeropad[(i + 1) * (SIZE + 2) + j + 2] * kern[2 + 1 * CONV_SIZE] +
-		zeropad[(i + 2) * (SIZE + 2) + j + 2] * kern[2 + 2 * CONV_SIZE];
-	out[size * i + j] += sum;
+	sum = zeropad[i * (SIZE + 2) + j] * kernFull[0 + weights_offset] +
+		zeropad[(i + 1) * (SIZE + 2) + j] * kernFull[1 * CONV_SIZE + weights_offset] +
+		zeropad[(i + 2) * (SIZE + 2) + j] * kernFull[2 * CONV_SIZE + weights_offset] +
+		zeropad[i * (SIZE + 2) + j + 1] * kernFull[1 + weights_offset] +
+		zeropad[(i + 1) * (SIZE + 2) + j + 1] * kernFull[1 + CONV_SIZE + weights_offset] +
+		zeropad[(i + 2) * (SIZE + 2) + j + 1] * kernFull[1 + 2 * CONV_SIZE + weights_offset] +
+		zeropad[i * (SIZE + 2) + j + 2] * kernFull[2 + weights_offset] +
+		zeropad[(i + 1) * (SIZE + 2) + j + 2] * kernFull[2 + 1 * CONV_SIZE + weights_offset] +
+		zeropad[(i + 2) * (SIZE + 2) + j + 2] * kernFull[2 + 2 * CONV_SIZE + weights_offset];
+	outFull[size * i + j + output_offset] += sum;
 
-  //   if(i > 0 && j > 0)
-  //         sum += zeropad[i * (SIZE + 2) + j] * kern[0];
-  //   if(j > 0)
-  //         sum += zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE];
-  //   if(j > 0)
-  //         sum += zeropad[(i + 2) * (SIZE + 2) + j] * kern[2 * CONV_SIZE];
 
-  //   sum += zeropad[i * (SIZE + 2) + j + 1] * kern[1] +
-  //         zeropad[(i + 1) * (SIZE + 2) + j + 1] * kern[1 + CONV_SIZE] +
-  //         zeropad[(i + 2) * (SIZE + 2) + j + 1] * kern[1 + 2 * CONV_SIZE] +
-  //         zeropad[i * (SIZE + 2) + j + 2] * kern[2] +
-  //         zeropad[(i + 1) * (SIZE + 2) + j + 2] * kern[2 + 1 * CONV_SIZE] +
-  //         zeropad[(i + 2) * (SIZE + 2) + j + 2] * kern[2 + 2 * CONV_SIZE];
-  //   out[size * i + j] += sum;
 
   //         sum = zeropad[i * (SIZE + 2) + j] * kern[0] +
   //         zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE] +
@@ -71,24 +58,28 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
   //   out[size * i + j] += sum;
 }
 
-__kernel void zeropadConv(__global float *matrix, int size,
-                          __global float *zeropad /*, int input_offset*/) {
+__kernel void zeropadConv(__global float *matrixFull, int size,
+                          __global float *zeropad , int input_offset) {
 	const int i = get_global_id(0);
 	const int j = get_global_id(1);
 
-	// __global float *matrix = &matrixFull[size * size * input_offset];
+	// __global float *matrix = &matrixFull[size  * input_offset];
 
-	zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
+	zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrixFull[i * size + j + input_offset];
+
+        // zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
 }
 
-__kernel void add_bias_and_relu(int size, __global float *out, float bs) {
+__kernel void add_bias_and_relu(int size, __global float *outFull, float bs, int output_offset) {
 
 	const int i = get_global_id(0);
 	const int j = get_global_id(1);
 
-	out[i * size + j] += bs;
-	if (out[i * size + j] < 0.0f)
-		out[i * size + j] = 0.0f;
+        // __global float *out = &outFull[size * output_offset];
+
+	outFull[i * size + j + output_offset] += bs;
+	if (outFull[i * size + j + output_offset] < 0.0f)
+		outFull[i * size + j + output_offset] = 0.0f;
 }
 
 /*kernel void convolutie3x3(
