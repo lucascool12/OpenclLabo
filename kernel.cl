@@ -60,8 +60,8 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
 
 __kernel void zeropadConv(__global float *matrixFull, int size,
                           __global float *zeropad , int input_offset) {
-	const int i = get_global_id(0);
-	const int j = get_global_id(1);
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
 
 	// __global float *matrix = &matrixFull[size  * input_offset];
 
@@ -72,8 +72,8 @@ __kernel void zeropadConv(__global float *matrixFull, int size,
 
 __kernel void add_bias_and_relu(int size, __global float *outFull, float bs, int output_offset) {
 
-	const int i = get_global_id(0);
-	const int j = get_global_id(1);
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
 
         // __global float *out = &outFull[size * output_offset];
 
