@@ -304,7 +304,7 @@ void convolution_3_x_3(int size, float matrix[][size], float kernel[][CONV_SIZE]
 void convolution_3_x_3_pll(int size, float matrix[][size], float kernelArray[][CONV_SIZE],
                        float out[][size], int input_offset, int weights_offset, int output_offset) {	
 
-	if(size > 128){
+	if(size > 64){
 		cl_int error;
 
 		// cl_mem dev_zeropad = clCreateBuffer(g_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -427,7 +427,7 @@ void add_bias_and_relu(int size, float out[][size], float bs) {
 }
 
 void add_bias_and_relu_pll(int size, float out[][size], float bs, int output_offset) {
-	if(size > 128){
+	if(size > 64){
 		cl_int error;
 		// error = clEnqueueWriteBuffer(g_command_queue, dev_out, CL_TRUE, 0,
 		// 			sizeof(cl_float) * (size)*(size), out, 0, NULL, NULL);
@@ -522,7 +522,7 @@ void convolution_layer(int feature_size, int input_depth, int output_depth,
 							&output_features[output_it * feature_size * feature_size],
 							layer_biases[output_it], output_it * feature_size * feature_size);
 	}
-	if(feature_size > 128)
+	if(feature_size > 64)
 		ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
 					0, MEM_BLOCK_DEPTH * SIZE * SIZE * sizeof(cl_float), output_features, 0, NULL, NULL));
 
