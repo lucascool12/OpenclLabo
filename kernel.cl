@@ -18,20 +18,11 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
 	const int j = get_global_id(0);
 	const int i = get_global_id(1);
 
+        // const int b = get_work_dim();
+
 //     __global float *kern = &kernFull[CONV_SIZE * weights_offset];
 //     __global float *out = &outFull[size * output_offset];
 
-  //   float zeropad[(SIZE + 2) * 3] = {{0.}};
-  //   int eersteLeeg = 1;
-  //   if(i == 0)
-  //         eersteLeeg = 0;
-
-  //   for (int ii = i; ii < 2 - eersteLeeg; ii++) {
-  //     for (int jj = j; jj < size; jj++) {
-  //             zeropad[(ii - i + 1)*(SIZE + 2) + jj - j + eersteLeeg] =
-  //             matrix[ii*(size) + jj];
-  //     }
-  //   }
 
 	sum = zeropad[i * (SIZE + 2) + j] * kernFull[0 + weights_offset] +
 		zeropad[(i + 1) * (SIZE + 2) + j] * kernFull[1 * CONV_SIZE + weights_offset] +
@@ -58,6 +49,91 @@ __kernel void inner_convolutie3x3(__global float *zeropad, int size,
   //   out[size * i + j] += sum;
 }
 
+void zeropadConvfunc(__global float *matrixFull, int size,
+                          __global float *zeropad , int input_offset) {
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
+
+	// __global float *matrix = &matrixFull[size  * input_offset];
+
+	zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrixFull[i * size + j + input_offset];
+
+        // zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
+}
+
+inline void AtomicAdd(volatile __global float *source, const float operand) {
+    union {
+        unsigned int intVal;
+        float floatVal;
+    } newVal;
+    union {
+        unsigned int intVal;
+        float floatVal;
+    } prevVal;
+    do {
+        prevVal.floatVal = *source;
+        newVal.floatVal = prevVal.floatVal + operand;
+    } while (atomic_cmpxchg((volatile __global unsigned int *)source, prevVal.intVal,
+                newVal.intVal) != prevVal.intVal);
+}
+
+__kernel void inner_convolutie3x3_test(__global float *zeropad, int size,
+                                  __global float *kernFull, __global float *outFull,
+                                  int output_offset, int input_depth, int output_it) {
+
+	float sum = 0;
+
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
+        const int u = get_global_id(2);
+
+        // const int b = get_work_dim();
+
+//     __global float *kern = &kernFull[CONV_SIZE * weights_offset];
+//     __global float *out = &outFull[size * output_offset];
+
+        int weights_offset = output_it * input_depth * CONV_SIZE * CONV_SIZE + u * CONV_SIZE * CONV_SIZE;
+        
+	sum = zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j] * kernFull[0 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j] * kernFull[1 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j] * kernFull[2 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j + 1] * kernFull[1 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j + 1] * kernFull[1 + CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j + 1] * kernFull[1 + 2 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j + 2] * kernFull[2 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j + 2] * kernFull[2 + 1 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j + 2] * kernFull[2 + 2 * CONV_SIZE + weights_offset];
+
+        AtomicAdd(&outFull[size * i + j + output_offset], sum);
+	// outFull[size * i + j + output_offset] += sum;
+
+
+
+  //         sum = zeropad[i * (SIZE + 2) + j] * kern[0] +
+  //         zeropad[(i + 1) * (SIZE + 2) + j] * kern[1 * CONV_SIZE] +
+  //         zeropad[(i + 2) * (SIZE + 2) + j] * kern[2 * CONV_SIZE] +
+  //         zeropad[i * (SIZE + 2) + j + 1] * kern[1] +
+  //         zeropad[(i + 1) * (SIZE + 2) + j + 1] * kern[1 + CONV_SIZE] +
+  //         zeropad[(i + 2) * (SIZE + 2) + j + 1] * kern[1 + 2 * CONV_SIZE] +
+  //         zeropad[i * (SIZE + 2) + j + 2] * kern[2] +
+  //         zeropad[(i + 1) * (SIZE + 2) + j + 2] * kern[2 + 1 * CONV_SIZE] +
+  //         zeropad[(i + 2) * (SIZE + 2) + j + 2] * kern[2 + 2 * CONV_SIZE];
+  //   out[size * i + j] += sum;
+}
+
+__kernel void zeropadConv_test(__global float *matrixFull, int size,
+                          __global float *zeropad) {
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
+        const int u = get_global_id(2);
+
+	// __global float *matrix = &matrixFull[size  * input_offset];
+
+	zeropad[u*(SIZE + 2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j + 1] = matrixFull[i * size + j + u * size * size];
+
+        // zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
+}
+
 __kernel void zeropadConv(__global float *matrixFull, int size,
                           __global float *zeropad , int input_offset) {
 	const int j = get_global_id(0);
@@ -69,6 +145,8 @@ __kernel void zeropadConv(__global float *matrixFull, int size,
 
         // zeropad[(i + 1) * (SIZE + 2) + j + 1] = matrix[i * size + j];
 }
+
+
 
 __kernel void add_bias_and_relu(int size, __global float *outFull, float bs, int output_offset) {
 

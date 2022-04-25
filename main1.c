@@ -98,6 +98,10 @@ cl_kernel kernel_inner_3x3;
 
 cl_kernel kernelAddbs;
 
+cl_kernel kernelZeroPad_test;
+
+cl_kernel kernel_inner_3x3_test;
+
 int level;
 
 void reset_mem_block(float *mem) {
@@ -137,12 +141,13 @@ void init_memory() {
 	reset_mem_block(mem_block1);
 	reset_mem_block(mem_block2);
 
-	float zeropad[SIZE + 2][SIZE + 2] = {{0.}};
+	// float zeropad[SIZE + 2][SIZE + 2][512] = {{{0.}}};
 
 	cl_int error;
-	dev_zeropad = clCreateBuffer(g_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-				sizeof(cl_float) * (SIZE + 2)*(SIZE + 2), zeropad, &error);
+	dev_zeropad = clCreateBuffer(g_context, CL_MEM_READ_WRITE ,
+				sizeof(cl_float) * (SIZE + 2)*(SIZE + 2)*512, NULL, &error);
 	ocl_err(error);
+
 
 	dev_matrix = clCreateBuffer(g_context, CL_MEM_READ_ONLY,
 				MEM_BLOCK_DEPTH * SIZE * SIZE * sizeof(cl_float), NULL, &error);
@@ -157,10 +162,19 @@ void init_memory() {
 	ocl_err(error);
 
 	kernelZeroPad = clCreateKernel(g_program, "zeropadConv", &error);
+	ocl_err(error);
 
 	kernel_inner_3x3 = clCreateKernel(g_program, "inner_convolutie3x3", &error);
+	ocl_err(error);
 
 	kernelAddbs = clCreateKernel(g_program, "add_bias_and_relu", &error);
+	ocl_err(error);
+	
+	kernel_inner_3x3_test = clCreateKernel(g_program, "inner_convolutie3x3_test", &error);
+	ocl_err(error);
+
+	kernelZeroPad_test = clCreateKernel(g_program, "zeropadConv_test", &error);
+	ocl_err(error);
 }
 
 
@@ -358,6 +372,51 @@ void convolution_3_x_3_pll(int size, float matrix[][size], float kernelArray[][C
 	
 }
 
+void convolution_3_x_3_pll_test(int size, int output_it, int output_offset, int input_depth) {	
+
+	cl_int error;
+
+	//zeropad
+
+	//Leeg maken van zeropad
+	float pattrn[] = {0};
+	ocl_err(clEnqueueFillBuffer(g_command_queue, dev_zeropad,
+									pattrn, 1, 0,sizeof(cl_float) * (SIZE + 2)*(SIZE + 2) * cshape[12][0],
+									0,NULL,NULL));
+
+	int arg_num = 0;
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_mem), &dev_matrix));
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_int), &size));
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_mem), &dev_zeropad));
+
+
+
+	// Call kernel
+	size_t global_work_sizes[] = {size, size, input_depth};
+	ocl_err(clEnqueueNDRangeKernel(g_command_queue, kernelZeroPad_test, 3, NULL,
+				global_work_sizes, NULL, 0, NULL, NULL));
+
+
+	//inner 3x3
+
+	// Set kernel arguments
+	arg_num = 0;
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_mem), &dev_zeropad));
+	// ocl_err(clSetKernelArg(kernel, arg_num++, sizeof(cl_mem), &dev_matrix));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_int), &size));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_mem), &dev_weights));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_mem), &dev_out));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_int), &output_offset));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_int), &input_depth));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_test, arg_num++, sizeof(cl_int), &output_it));
+
+
+	// Call kernel
+	ocl_err(clEnqueueNDRangeKernel(g_command_queue, kernel_inner_3x3_test, 3, NULL,
+				global_work_sizes, NULL, 0, NULL, NULL));
+	
+}
+
 void add_bias_and_relu(int size, float out[][size], float bs) {
 	int i, j;
 
@@ -404,16 +463,19 @@ void convolution_layer(int feature_size, int input_depth, int output_depth,
 				output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL);
 	ocl_err(error);
 	for (int output_it = 0; output_it < output_depth; output_it++) {
-		for (int input_it = 0; input_it < input_depth; input_it++) {
+		// for (int input_it = 0; input_it < input_depth; input_it++) {
 			
-			convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
-							  &layer_weights[output_it * input_depth * CONV_SIZE * CONV_SIZE +
-							  				 input_it * CONV_SIZE * CONV_SIZE],
-							  &output_features[output_it * feature_size * feature_size],
-							  input_it * feature_size * feature_size,
-							  output_it * input_depth * CONV_SIZE * CONV_SIZE + input_it * CONV_SIZE * CONV_SIZE,
-							  output_it * feature_size * feature_size);
-		}
+		// 	convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
+		// 					  &layer_weights[output_it * input_depth * CONV_SIZE * CONV_SIZE +
+		// 					  				 input_it * CONV_SIZE * CONV_SIZE],
+		// 					  &output_features[output_it * feature_size * feature_size],
+		// 					  input_it * feature_size * feature_size,
+		// 					  output_it * input_depth * CONV_SIZE * CONV_SIZE + input_it * CONV_SIZE * CONV_SIZE,
+		// 					  output_it * feature_size * feature_size);
+		// }
+			
+		convolution_3_x_3_pll_test(feature_size, output_it, output_it * feature_size * feature_size, input_depth);
+
 		// ocl_err(clFinish(g_command_queue));
 
 		add_bias_and_relu_pll(feature_size,
@@ -536,186 +598,186 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 
 	// Layer 1 (Convolution 3 -> 64)
-	time_measure_start("L1",1);
+	time_measure_start("L1");
 	level = 0;
 	cur_size = SIZE;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  image, wc[level], bc[level], mem_block1);
-	time_measure_stop_and_print("L1",1);
+	time_measure_stop_and_print("L1");
 
 	//FILE* f = fopen("debug1.dat","w");
 	//fwrite(mem_block1,MEM_BLOCK_DEPTH * SIZE * SIZE * sizeof(float),1,f);
 	//fclose(f);
 	
 	// Layer 2 (Convolution 64 -> 64)
-	time_measure_start("L2",2);
+	time_measure_start("L2");
 	level = 1;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L2",2);
+	time_measure_stop_and_print("L2");
 	
 	// Layer 3 (MaxPooling)
-	time_measure_start("L3",3);
+	time_measure_start("L3");
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	cur_size /= 2;
-	time_measure_stop_and_print("L3",3);
+	time_measure_stop_and_print("L3");
 	
 	// Layer 4 (Convolution 64 -> 128)
-	time_measure_start("L4",4);
+	time_measure_start("L4");
 	level = 2;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L4",4);
+	time_measure_stop_and_print("L4");
 
 	// Layer 5 (Convolution 128 -> 128)
-	time_measure_start("L5",5);
+	time_measure_start("L5");
 	level = 3;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L5",5);
+	time_measure_stop_and_print("L5");
 	
 	// Layer 6 (MaxPooling)
-	time_measure_start("L6",6);
+	time_measure_start("L6");
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	cur_size /= 2;
-	time_measure_stop_and_print("L6",6);
+	time_measure_stop_and_print("L6");
 
 	// Layer 7 (Convolution 128 -> 256)
-	time_measure_start("L7",7);
+	time_measure_start("L7");
 	level = 4;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L7",7);
+	time_measure_stop_and_print("L7");
 
 	// Layer 8 (Convolution 256 -> 256)
-	time_measure_start("L8",8);
+	time_measure_start("L8");
 	level = 5;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L8",8);
+	time_measure_stop_and_print("L8");
 
 	// Layer 9 (Convolution 256 -> 256)
-	time_measure_start("L9",9);
+	time_measure_start("L9");
 	level = 6;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L9",9);
+	time_measure_stop_and_print("L9");
 	
 	// Layer 10 (MaxPooling)
-	time_measure_start("L10",10);
+	time_measure_start("L10");
 	maxpooling(cur_size, cshape[level][0], mem_block1);
 	cur_size /= 2;
-	time_measure_stop_and_print("L10",10);
+	time_measure_stop_and_print("L10");
 	
 	// Layer 11 (Convolution 256 -> 512)
-	time_measure_start("L11",11);
+	time_measure_start("L11");
 	level = 7;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L11",11);
+	time_measure_stop_and_print("L11");
 
 	// Layer 12 (Convolution 512 -> 512)
-	time_measure_start("L12",12);
+	time_measure_start("L12");
 	level = 8;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L12",12);
+	time_measure_stop_and_print("L12");
 
 	// Layer 13 (Convolution 512 -> 512)
-	time_measure_start("L13",13);
+	time_measure_start("L13");
 	level = 9;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L13",13);
+	time_measure_stop_and_print("L13");
 	
 	// Layer 14 (MaxPooling)
-	time_measure_start("L14",14);
+	time_measure_start("L14");
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	// for (i = 0; i < cshape[level][0]; i++) {
 	// 	maxpooling(cur_size, &mem_block2[i * cur_size * cur_size]);
 	// }
 	cur_size /= 2;
-	time_measure_stop_and_print("L14",14);
+	time_measure_stop_and_print("L14");
 	
 	// Layer 15 (Convolution 512 -> 512)
-	time_measure_start("L15",15);
+	time_measure_start("L15");
 	level = 10;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L15",15);
+	time_measure_stop_and_print("L15");
 
 	// Layer 16 (Convolution 512 -> 512)
-	time_measure_start("L16",16);
+	time_measure_start("L16");
 	level = 11;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
 	reset_mem_block(mem_block1);
-	time_measure_stop_and_print("L16",16);
+	time_measure_stop_and_print("L16");
 
 	// Layer 17 (Convolution 512 -> 512)
-	time_measure_start("L17",17);
+	time_measure_start("L17");
 	level = 12;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
 	reset_mem_block(mem_block2);
-	time_measure_stop_and_print("L17",17);
+	time_measure_stop_and_print("L17");
 	
 	// Layer 18 (MaxPooling)
-	time_measure_start("L18",18);
+	time_measure_start("L18");
 	maxpooling(cur_size, cshape[level][0], mem_block1);
 	cur_size /= 2;
 	
 	mem_block1_dense = mem_block2;
 	mem_block2_dense = mem_block1;
-	time_measure_stop_and_print("L18",18);
+	time_measure_stop_and_print("L18");
 
-	time_measure_start("L19",19);
+	time_measure_start("L19");
 	reset_mem_block_dense(mem_block1_dense);
 	// Layer 19 (Flatten)
 	flatten(cshape[level][0], cur_size, cur_size, mem_block1, mem_block1_dense);
 	if (only_convolution == 1) {
 		return;
 	}
-	time_measure_stop_and_print("L19",19);
+	time_measure_stop_and_print("L19");
 
 
 	//reset_mem_block_dense(mem_block2_dense);
 
 	// Layer 20 (Dense)
-	time_measure_start("L20",20);
+	time_measure_start("L20");
 	level = 0;
 	dense(mem_block1_dense, wd[level], mem_block2_dense, dshape[level][0], dshape[level][1]);
 	add_bias_and_relu_flatten(mem_block2_dense, bd[level], dshape[level][1], 1);
 	reset_mem_block_dense(mem_block1_dense);
-	time_measure_stop_and_print("L20",20);
+	time_measure_stop_and_print("L20");
 
 	// Layer 21 (Dense)
-	time_measure_start("L21",21);
+	time_measure_start("L21");
 	level = 1;
 	dense(mem_block2_dense, wd[level], mem_block1_dense, dshape[level][0], dshape[level][1]);
 	add_bias_and_relu_flatten(mem_block1_dense, bd[level], dshape[level][1], 1);
 	reset_mem_block_dense(mem_block2_dense);
-	time_measure_stop_and_print("L21",21);
+	time_measure_stop_and_print("L21");
 
 	
 	// Layer 22 (Dense)
-	time_measure_start("L22",22);
+	time_measure_start("L22");
 	level = 2;
 	dense(mem_block1_dense, wd[level], mem_block2_dense, dshape[level][0], dshape[level][1]);
 	add_bias_and_relu_flatten(mem_block2_dense, bd[level], dshape[level][1], 1);
 	softmax(mem_block2_dense, dshape[level][1]);
 	// dump_memory_structure_dense_to_file(mem_block2_dense, dshape[level][1]);
-	time_measure_stop_and_print("L22",22);
+	time_measure_stop_and_print("L22");
 	
 	return;
 }
@@ -766,9 +828,9 @@ int main(int argc, char *argv[]) {
 	store_image(input_image);
 	normalize_image();
 
-	time_measure_start("prediction",0);
+	time_measure_start("prediction");
 	get_VGG16_predict(only_convolution);
-	time_measure_stop_and_print("prediction",0);
+	time_measure_stop_and_print("prediction");
 
 	output_predictions();
 
