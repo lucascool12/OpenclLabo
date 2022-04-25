@@ -6,3 +6,5 @@ stb_image.h
 vgg16_weights.txt
 result.txt
 .vscode
+vgg1
+vgg0
