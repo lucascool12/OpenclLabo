@@ -102,6 +102,8 @@ cl_kernel kernelZeroPad_test;
 
 cl_kernel kernel_inner_3x3_test;
 
+cl_kernel kernel_inner_3x3_tester;
+
 int level;
 
 void reset_mem_block(float *mem) {
@@ -174,6 +176,9 @@ void init_memory() {
 	ocl_err(error);
 
 	kernelZeroPad_test = clCreateKernel(g_program, "zeropadConv_test", &error);
+	ocl_err(error);
+
+	kernel_inner_3x3_tester = clCreateKernel(g_program, "inner_convolutie3x3_tester", &error);
 	ocl_err(error);
 }
 
@@ -417,6 +422,51 @@ void convolution_3_x_3_pll_test(int size, int output_it, int output_offset, int 
 	
 }
 
+void convolution_3_x_3_pll_tester(int size, int input_depth, int output_depth) {	
+
+	cl_int error;
+
+	//zeropad
+
+	//Leeg maken van zeropad
+	float pattrn[] = {0};
+	ocl_err(clEnqueueFillBuffer(g_command_queue, dev_zeropad,
+									pattrn, 1, 0,sizeof(cl_float) * (SIZE + 2)*(SIZE + 2) * cshape[12][0],
+									0,NULL,NULL));
+
+	int arg_num = 0;
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_mem), &dev_matrix));
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_int), &size));
+	ocl_err(clSetKernelArg(kernelZeroPad_test, arg_num++, sizeof(cl_mem), &dev_zeropad));
+
+
+
+	// Call kernel
+	size_t global_work_sizes1[] = {size, size, input_depth};
+	ocl_err(clEnqueueNDRangeKernel(g_command_queue, kernelZeroPad_test, 3, NULL,
+				global_work_sizes1, NULL, 0, NULL, NULL));
+
+
+	//inner 3x3
+
+	// Set kernel arguments
+	size_t global_work_sizes2[] = {size, size, input_depth*output_depth};
+	arg_num = 0;
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_mem), &dev_zeropad));
+	// ocl_err(clSetKernelArg(kernel, arg_num++, sizeof(cl_mem), &dev_matrix));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_int), &size));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_mem), &dev_weights));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_mem), &dev_out));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_int), &input_depth));
+	ocl_err(clSetKernelArg(kernel_inner_3x3_tester, arg_num++, sizeof(cl_int), &output_depth));
+
+
+	// Call kernel
+	ocl_err(clEnqueueNDRangeKernel(g_command_queue, kernel_inner_3x3_tester, 3, NULL,
+				global_work_sizes2, NULL, 0, NULL, NULL));
+	
+}
+
 void add_bias_and_relu(int size, float out[][size], float bs) {
 	int i, j;
 
@@ -462,7 +512,8 @@ void convolution_layer(int feature_size, int input_depth, int output_depth,
 	error = clEnqueueWriteBuffer(g_command_queue, dev_out, CL_TRUE, 0,
 				output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL);
 	ocl_err(error);
-	for (int output_it = 0; output_it < output_depth; output_it++) {
+
+	
 		// for (int input_it = 0; input_it < input_depth; input_it++) {
 			
 		// 	convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
@@ -474,28 +525,44 @@ void convolution_layer(int feature_size, int input_depth, int output_depth,
 		// 					  output_it * feature_size * feature_size);
 		// }
 			
-		convolution_3_x_3_pll_test(feature_size, output_it, output_it * feature_size * feature_size, input_depth);
+	convolution_3_x_3_pll_tester(feature_size, input_depth, output_depth);
 
 		// ocl_err(clFinish(g_command_queue));
-
+	for (int output_it = 0; output_it < output_depth; output_it++) {
 		add_bias_and_relu_pll(feature_size,
 							&output_features[output_it * feature_size * feature_size],
 							layer_biases[output_it], output_it * feature_size * feature_size);
 	}
 	// if(feature_size > 128)
 	ocl_err(clFinish(g_command_queue));
-		ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
-					0, output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL));
+	ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
+				0, output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL));
 
 	// for (int output_it = 0; output_it < output_depth; output_it++) {
-	// 	for (int input_it = 0; input_it < input_depth; input_it++) {
-	// 		convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
-	// 						  &layer_weights[output_it * input_depth * CONV_SIZE * CONV_SIZE +
-	// 						  				 input_it * CONV_SIZE * CONV_SIZE],
-	// 						  &output_features[output_it * feature_size * feature_size]);
-	// 	}
-	// 	add_bias_and_relu_pll(feature_size, &output_features[output_it * feature_size * feature_size], layer_biases[output_it]);
+	// 	// for (int input_it = 0; input_it < input_depth; input_it++) {
+			
+	// 	// 	convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
+	// 	// 					  &layer_weights[output_it * input_depth * CONV_SIZE * CONV_SIZE +
+	// 	// 					  				 input_it * CONV_SIZE * CONV_SIZE],
+	// 	// 					  &output_features[output_it * feature_size * feature_size],
+	// 	// 					  input_it * feature_size * feature_size,
+	// 	// 					  output_it * input_depth * CONV_SIZE * CONV_SIZE + input_it * CONV_SIZE * CONV_SIZE,
+	// 	// 					  output_it * feature_size * feature_size);
+	// 	// }
+			
+	// 	convolution_3_x_3_pll_test(feature_size, output_it, output_it * feature_size * feature_size, input_depth);
+
+	// 	// ocl_err(clFinish(g_command_queue));
+
+	// 	add_bias_and_relu_pll(feature_size,
+	// 						&output_features[output_it * feature_size * feature_size],
+	// 						layer_biases[output_it], output_it * feature_size * feature_size);
 	// }
+	// // if(feature_size > 128)
+	// ocl_err(clFinish(g_command_queue));
+	// ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
+	// 			0, output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL));
+
 }
 
 void add_bias_and_relu_flatten(float *out, float *bs, int size, int relu) {

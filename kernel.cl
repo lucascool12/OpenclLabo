@@ -121,6 +121,33 @@ __kernel void inner_convolutie3x3_test(__global float *zeropad, int size,
   //   out[size * i + j] += sum;
 }
 
+__kernel void inner_convolutie3x3_tester(__global float *zeropad, int size,
+                                  __global float *kernFull, __global float *outFull, int input_depth, int output_depth) {
+
+	float sum = 0;
+
+	const int j = get_global_id(0);
+	const int i = get_global_id(1);
+        const int u = get_global_id(2)%input_depth;//input_it
+        const int o = get_global_id(2)/input_depth;//output_it
+
+
+
+        int weights_offset = o * input_depth * CONV_SIZE * CONV_SIZE + u * CONV_SIZE * CONV_SIZE;
+        
+	sum = zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j] * kernFull[0 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j] * kernFull[1 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j] * kernFull[2 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j + 1] * kernFull[1 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j + 1] * kernFull[1 + CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j + 1] * kernFull[1 + 2 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + i * (SIZE + 2) + j + 2] * kernFull[2 + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 1) * (SIZE + 2) + j + 2] * kernFull[2 + 1 * CONV_SIZE + weights_offset] +
+		zeropad[u*(SIZE+2)*(SIZE + 2) + (i + 2) * (SIZE + 2) + j + 2] * kernFull[2 + 2 * CONV_SIZE + weights_offset];
+
+        AtomicAdd(&outFull[size * i + j + o*size*size], sum);
+}
+
 __kernel void zeropadConv_test(__global float *matrixFull, int size,
                           __global float *zeropad) {
 	const int j = get_global_id(0);
