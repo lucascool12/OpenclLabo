@@ -141,7 +141,7 @@ __kernel void inner_convolutie3x3_tester(__global float *zeropad, int size,
                                          __global float *outFull,
                                          int input_depth, int output_depth) {
 
-  float sum = 0;
+    float sum = 0;
 
   const int j = get_global_id(0);
   const int i = get_global_id(1);
@@ -257,7 +257,7 @@ __kernel void add_bias_and_relu(int size, __global float *outFull, float bs,
 }*/
 
 __kernel void dense(__global float *in, __global float *weights,
-                    __global float *out,  int sh_out) {
+                    __global float *out, int sh_out) {
   const int i = get_global_id(0);
   const int j = get_global_id(1);
   float sum = 0.0f;
