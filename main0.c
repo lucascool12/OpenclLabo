@@ -371,23 +371,20 @@ void softmax(float *out, int sh_out) {
 		out[i] /= sum;
 	}
 }
-
 void get_VGG16_predict(int only_convolution) {
-	int level, cur_size;
+	int cur_size;
 
 	// Init intermediate memory
 	reset_mem_block(mem_block1);
 	reset_mem_block(mem_block2);
 
-	
-	
 	// Layer 1 (Convolution 3 -> 64)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L1",1);
 	#else
 		time_measure_start("L1");
 	#endif	
-	level = 0;
+	int level = 0;
 	cur_size = SIZE;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  image, wc[level], bc[level], mem_block1);
@@ -397,10 +394,10 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L1");
 	#endif
 
-	// FILE* f = fopen("debug0.dat","w");
-	// fwrite(mem_block1,MEM_BLOCK_DEPTH * SIZE * SIZE * sizeof(float),1,f);
-	// fclose(f);
 
+	//FILE* f = fopen("debug1.dat","w");
+	//fwrite(mem_block1,MEM_BLOCK_DEPTH * SIZE * SIZE * sizeof(float),1,f);
+	//fclose(f);
 	
 	// Layer 2 (Convolution 64 -> 64)
 	#ifdef SIMPEL_TIME_UTILS
@@ -408,6 +405,7 @@ void get_VGG16_predict(int only_convolution) {
 	#else
 		time_measure_start("L2");
 	#endif	
+
 	level = 1;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -418,12 +416,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L2");
 	#endif	
 
+	
 	// Layer 3 (MaxPooling)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L3",3);
 	#else
 		time_measure_start("L3");
 	#endif	
+
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	cur_size /= 2;
 	#ifdef SIMPEL_TIME_UTILS
@@ -432,12 +432,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L3");
 	#endif	
 
+	
 	// Layer 4 (Convolution 64 -> 128)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L4",4);
 	#else
 		time_measure_start("L4");
 	#endif	
+
 	level = 2;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -448,12 +450,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L4");
 	#endif
 
+
 	// Layer 5 (Convolution 128 -> 128)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L5",5);
 	#else
 		time_measure_start("L5");
 	#endif	
+
 	level = 3;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -464,12 +468,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L5");
 	#endif	
 
+	
 	// Layer 6 (MaxPooling)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L6",6);
 	#else
 		time_measure_start("L6");
 	#endif	
+
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	cur_size /= 2;
 	#ifdef SIMPEL_TIME_UTILS
@@ -478,12 +484,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L6");
 	#endif
 
+
 	// Layer 7 (Convolution 128 -> 256)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L7",7);
 	#else
 		time_measure_start("L7");
 	#endif	
+
 	level = 4;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -494,12 +502,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L7");
 	#endif
 
+
 	// Layer 8 (Convolution 256 -> 256)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L8",8);
 	#else
 		time_measure_start("L8");
 	#endif	
+
 	level = 5;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -510,12 +520,14 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L8");
 	#endif
 
+
 	// Layer 9 (Convolution 256 -> 256)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L9",9);
 	#else
 		time_measure_start("L9");
 	#endif	
+
 	level = 6;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -526,26 +538,30 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L9");
 	#endif	
 
+	
 	// Layer 10 (MaxPooling)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L10",10);
 	#else
-		time_measure_start("L10",);
+		time_measure_start("L10");
 	#endif	
+
 	maxpooling(cur_size, cshape[level][0], mem_block1);
 	cur_size /= 2;
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L10",10);
 	#else
-		time_measure_stop_and_print("L10",);
+		time_measure_stop_and_print("L10");
 	#endif	
 
+	
 	// Layer 11 (Convolution 256 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L11",11);
 	#else
-		time_measure_start("L11",);
+		time_measure_start("L11");
 	#endif	
+
 	level = 7;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -553,15 +569,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L11",11);
 	#else
-		time_measure_stop_and_print("L11",);
+		time_measure_stop_and_print("L11");
 	#endif
+
 
 	// Layer 12 (Convolution 512 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L12",12);
 	#else
-		time_measure_start("L12",);
+		time_measure_start("L12");
 	#endif	
+
 	level = 8;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -569,15 +587,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L12",12);
 	#else
-		time_measure_stop_and_print("L12",);
+		time_measure_stop_and_print("L12");
 	#endif
+
 
 	// Layer 13 (Convolution 512 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L13",13);
 	#else
-		time_measure_start("L13",);
+		time_measure_start("L13");
 	#endif	
+
 	level = 9;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -585,15 +605,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L13",13);
 	#else
-		time_measure_stop_and_print("L13",);
+		time_measure_stop_and_print("L13");
 	#endif	
 
+	
 	// Layer 14 (MaxPooling)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L14",14);
 	#else
-		time_measure_start("L14",);
+		time_measure_start("L14");
 	#endif	
+
 	maxpooling(cur_size, cshape[level][0], mem_block2);
 	// for (i = 0; i < cshape[level][0]; i++) {
 	// 	maxpooling(cur_size, &mem_block2[i * cur_size * cur_size]);
@@ -602,15 +624,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L14",14);
 	#else
-		time_measure_stop_and_print("L14",);
+		time_measure_stop_and_print("L14");
 	#endif	
 
+	
 	// Layer 15 (Convolution 512 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L15",15);
 	#else
-		time_measure_start("L15",);
+		time_measure_start("L15");
 	#endif	
+
 	level = 10;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -618,15 +642,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L15",15);
 	#else
-		time_measure_stop_and_print("L15",);
+		time_measure_stop_and_print("L15");
 	#endif
+
 
 	// Layer 16 (Convolution 512 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L16",16);
 	#else
-		time_measure_start("L16",);
+		time_measure_start("L16");
 	#endif	
+
 	level = 11;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block1, wc[level], bc[level], mem_block2);
@@ -634,15 +660,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L16",16);
 	#else
-		time_measure_stop_and_print("L16",);
+		time_measure_stop_and_print("L16");
 	#endif
+
 
 	// Layer 17 (Convolution 512 -> 512)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L17",17);
 	#else
-		time_measure_start("L17",);
+		time_measure_start("L17");
 	#endif	
+
 	level = 12;
 	convolution_layer(cur_size, cshape[level][1], cshape[level][0],
 					  mem_block2, wc[level], bc[level], mem_block1);
@@ -650,15 +678,17 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L17",17);
 	#else
-		time_measure_stop_and_print("L17",);
+		time_measure_stop_and_print("L17");
 	#endif	
 
+	
 	// Layer 18 (MaxPooling)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L18",18);
 	#else
-		time_measure_start("L18",);
+		time_measure_start("L18");
 	#endif	
+
 	maxpooling(cur_size, cshape[level][0], mem_block1);
 	cur_size /= 2;
 	
@@ -667,8 +697,15 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L18",18);
 	#else
-		time_measure_stop_and_print("L18",);
+		time_measure_stop_and_print("L18");
 	#endif
+
+
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_start("L19",19);
+	#else
+		time_measure_start("L19");
+	#endif	
 
 	reset_mem_block_dense(mem_block1_dense);
 	// Layer 19 (Flatten)
@@ -676,6 +713,13 @@ void get_VGG16_predict(int only_convolution) {
 	if (only_convolution == 1) {
 		return;
 	}
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_stop_and_print("L19",19);
+	#else
+		time_measure_stop_and_print("L19");
+	#endif
+
+
 
 	//reset_mem_block_dense(mem_block2_dense);
 
@@ -683,24 +727,38 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L20",20);
 	#else
-		time_measure_start("L20",);
+		time_measure_start("L20");
 	#endif	
+
 	level = 0;
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_start("L20_1",20);
+	#else
+		time_measure_start("L20_1");
+	#endif
 	dense(mem_block1_dense, wd[level], mem_block2_dense, dshape[level][0], dshape[level][1]);
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_stop_and_print("L20_1",20);
+	#else
+		time_measure_stop_and_print("L20_1");
+	#endif
 	add_bias_and_relu_flatten(mem_block2_dense, bd[level], dshape[level][1], 1);
+
 	reset_mem_block_dense(mem_block1_dense);
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L20",20);
 	#else
-		time_measure_stop_and_print("L20",);
+		time_measure_stop_and_print("L20");
 	#endif
+
 
 	// Layer 21 (Dense)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L21",21);
 	#else
-		time_measure_start("L21",);
+		time_measure_start("L21");
 	#endif	
+
 	level = 1;
 	dense(mem_block2_dense, wd[level], mem_block1_dense, dshape[level][0], dshape[level][1]);
 	add_bias_and_relu_flatten(mem_block1_dense, bd[level], dshape[level][1], 1);
@@ -708,16 +766,18 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L21",21);
 	#else
-		time_measure_stop_and_print("L21",);
+		time_measure_stop_and_print("L21");
 	#endif
+
 
 	
 	// Layer 22 (Dense)
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_start("L22",22);
 	#else
-		time_measure_start("L22",);
+		time_measure_start("L22");
 	#endif	
+
 	level = 2;
 	dense(mem_block1_dense, wd[level], mem_block2_dense, dshape[level][0], dshape[level][1]);
 	add_bias_and_relu_flatten(mem_block2_dense, bd[level], dshape[level][1], 1);
@@ -726,9 +786,10 @@ void get_VGG16_predict(int only_convolution) {
 	#ifdef SIMPEL_TIME_UTILS
 		time_measure_stop_and_print("L22",22);
 	#else
-		time_measure_stop_and_print("L22",);
+		time_measure_stop_and_print("L22");
 	#endif	
 
+	
 	return;
 }
 
