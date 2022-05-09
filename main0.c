@@ -705,12 +705,24 @@ void get_VGG16_predict(int only_convolution) {
 		time_measure_stop_and_print("L18");
 	#endif
 
+
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_start("L19",18);
+	#else
+		time_measure_start("L19");
+	#endif
 	reset_mem_block_dense(mem_block1_dense);
 	// Layer 19 (Flatten)
 	flatten(cshape[level][0], cur_size, cur_size, mem_block1, mem_block1_dense);
 	if (only_convolution == 1) {
 		return;
 	}
+
+	#ifdef SIMPEL_TIME_UTILS
+		time_measure_stop_and_print("L19",18);
+	#else
+		time_measure_stop_and_print("L19");
+	#endif
 
 	//reset_mem_block_dense(mem_block2_dense);
 
