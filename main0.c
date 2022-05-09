@@ -383,7 +383,7 @@ void get_VGG16_predict(int only_convolution) {
 	
 	// Layer 1 (Convolution 3 -> 64)
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L1",1));
+		time_measure_start("L1",1);
 	#else
 		time_measure_start("L1");
 	#endif
@@ -393,7 +393,7 @@ void get_VGG16_predict(int only_convolution) {
 					  image, wc[level], bc[level], mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L1",1));
+		time_measure_stop_and_print("L1",1);
 	#else
 		time_measure_stop_and_print("L1");
 	#endif
@@ -406,7 +406,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 2 (Convolution 64 -> 64)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L2",2));
+		time_measure_start("L2",2);
 	#else
 		time_measure_start("L2");
 	#endif
@@ -416,7 +416,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L2",2));
+		time_measure_stop_and_print("L2",2);
 	#else
 		time_measure_stop_and_print("L2");
 	#endif
@@ -424,7 +424,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 3 (MaxPooling)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L3",3));
+		time_measure_start("L3",3);
 	#else
 		time_measure_start("L3");
 	#endif
@@ -432,7 +432,7 @@ void get_VGG16_predict(int only_convolution) {
 	cur_size /= 2;
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L3",3));
+		time_measure_stop_and_print("L3",3);
 	#else
 		time_measure_stop_and_print("L3");
 	#endif
@@ -440,7 +440,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 4 (Convolution 64 -> 128)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L4",4));
+		time_measure_start("L4",4);
 	#else
 		time_measure_start("L4");
 	#endif
@@ -450,7 +450,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L4",4));
+		time_measure_stop_and_print("L4",4);
 	#else
 		time_measure_stop_and_print("L4");
 	#endif
@@ -458,7 +458,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 5 (Convolution 128 -> 128)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L5",5));
+		time_measure_start("L5",5);
 	#else
 		time_measure_start("L5");
 	#endif
@@ -468,7 +468,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L5",5));
+		time_measure_stop_and_print("L5",5);
 	#else
 		time_measure_stop_and_print("L5");
 	#endif
@@ -476,7 +476,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 6 (MaxPooling)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L6",6));
+		time_measure_start("L6",6);
 	#else
 		time_measure_start("L6");
 	#endif
@@ -484,7 +484,7 @@ void get_VGG16_predict(int only_convolution) {
 	cur_size /= 2;
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L6",6));
+		time_measure_stop_and_print("L6",6);
 	#else
 		time_measure_stop_and_print("L6");
 	#endif
@@ -492,7 +492,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 7 (Convolution 128 -> 256)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L7",7));
+		time_measure_start("L7",7);
 	#else
 		time_measure_start("L7");
 	#endif
@@ -502,7 +502,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L7",7));
+		time_measure_stop_and_print("L7",7);
 	#else
 		time_measure_stop_and_print("L7");
 	#endif
@@ -510,7 +510,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 8 (Convolution 256 -> 256)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L8",8));
+		time_measure_start("L8",8);
 	#else
 		time_measure_start("L8");
 	#endif
@@ -520,7 +520,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L8",8));
+		time_measure_stop_and_print("L8",8);
 	#else
 		time_measure_stop_and_print("L8");
 	#endif
@@ -528,7 +528,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 9 (Convolution 256 -> 256)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L9",9));
+		time_measure_start("L9",9);
 	#else
 		time_measure_start("L9");
 	#endif
@@ -538,7 +538,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L9",9));
+		time_measure_stop_and_print("L9",9);
 	#else
 		time_measure_stop_and_print("L9");
 	#endif
@@ -546,7 +546,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 10 (MaxPooling)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L10",10));
+		time_measure_start("L10",10);
 	#else
 		time_measure_start("L10");
 	#endif
@@ -554,7 +554,7 @@ void get_VGG16_predict(int only_convolution) {
 	cur_size /= 2;
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L10",10));
+		time_measure_stop_and_print("L10",10);
 	#else
 		time_measure_stop_and_print("L10");
 	#endif
@@ -562,7 +562,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 11 (Convolution 256 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L11",11));
+		time_measure_start("L11",11);
 	#else
 		time_measure_start("L11");
 	#endif
@@ -572,7 +572,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L11",11));
+		time_measure_stop_and_print("L11",11);
 	#else
 		time_measure_stop_and_print("L11");
 	#endif
@@ -580,7 +580,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 12 (Convolution 512 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L12",12));
+		time_measure_start("L12",12);
 	#else
 		time_measure_start("L12");
 	#endif
@@ -590,7 +590,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L12",12));
+		time_measure_stop_and_print("L12",12);
 	#else
 		time_measure_stop_and_print("L12");
 	#endif
@@ -598,7 +598,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 13 (Convolution 512 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L13",13));
+		time_measure_start("L13",13);
 	#else
 		time_measure_start("L13");
 	#endif
@@ -608,7 +608,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L13",13));
+		time_measure_stop_and_print("L13",13);
 	#else
 		time_measure_stop_and_print("L13");
 	#endif
@@ -616,7 +616,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 14 (MaxPooling)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L14",14));
+		time_measure_start("L14",14);
 	#else
 		time_measure_start("L14");
 	#endif
@@ -627,7 +627,7 @@ void get_VGG16_predict(int only_convolution) {
 	cur_size /= 2;
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L14",14));
+		time_measure_stop_and_print("L14",14);
 	#else
 		time_measure_stop_and_print("L14");
 	#endif
@@ -635,7 +635,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 15 (Convolution 512 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L15",15));
+		time_measure_start("L15",15);
 	#else
 		time_measure_start("L15");
 	#endif
@@ -645,7 +645,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L15",15));
+		time_measure_stop_and_print("L15",15);
 	#else
 		time_measure_stop_and_print("L15");
 	#endif
@@ -653,7 +653,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 16 (Convolution 512 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L16",16));
+		time_measure_start("L16",16);
 	#else
 		time_measure_start("L16");
 	#endif
@@ -663,7 +663,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block1);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L16",16));
+		time_measure_stop_and_print("L16",16);
 	#else
 		time_measure_stop_and_print("L16");
 	#endif
@@ -671,7 +671,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 17 (Convolution 512 -> 512)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L17",17));
+		time_measure_start("L17",17);
 	#else
 		time_measure_start("L17");
 	#endif
@@ -681,7 +681,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block(mem_block2);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L17",17));
+		time_measure_stop_and_print("L17",17);
 	#else
 		time_measure_stop_and_print("L17");
 	#endif
@@ -689,7 +689,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 18 (MaxPooling)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L18",18));
+		time_measure_start("L18",18);
 	#else
 		time_measure_start("L18");
 	#endif
@@ -700,7 +700,7 @@ void get_VGG16_predict(int only_convolution) {
 	mem_block2_dense = mem_block1;
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L18",18));
+		time_measure_stop_and_print("L18",18);
 	#else
 		time_measure_stop_and_print("L18");
 	#endif
@@ -717,7 +717,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 20 (Dense)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L20",20));
+		time_measure_start("L20",20);
 	#else
 		time_measure_start("L20");
 	#endif
@@ -727,7 +727,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block_dense(mem_block1_dense);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L20",20));
+		time_measure_stop_and_print("L20",20);
 	#else
 		time_measure_stop_and_print("L20");
 	#endif
@@ -735,7 +735,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 21 (Dense)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L21",21));
+		time_measure_start("L21",21);
 	#else
 		time_measure_start("L21");
 	#endif
@@ -745,7 +745,7 @@ void get_VGG16_predict(int only_convolution) {
 	reset_mem_block_dense(mem_block2_dense);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L21",21));
+		time_measure_stop_and_print("L21",21);
 	#else
 		time_measure_stop_and_print("L21");
 	#endif
@@ -754,7 +754,7 @@ void get_VGG16_predict(int only_convolution) {
 	// Layer 22 (Dense)
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("L22",22));
+		time_measure_start("L22",22);
 	#else
 		time_measure_start("L22");
 	#endif
@@ -765,7 +765,7 @@ void get_VGG16_predict(int only_convolution) {
 	// dump_memory_structure_dense_to_file(mem_block2_dense, dshape[level][1]);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("L22",22));
+		time_measure_stop_and_print("L22",22);
 	#else
 		time_measure_stop_and_print("L22");
 	#endif
@@ -816,14 +816,14 @@ int main(int argc, char *argv[]) {
 
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_start("prediction",0));
+		time_measure_start("prediction",0);
 	#else
 		time_measure_start("prediction");
 	#endif
 	get_VGG16_predict(only_convolution);
 	
 	#ifdef SIMPEL_TIME_UTILS
-		time_measure_stop_and_print("prediction",0));
+		time_measure_stop_and_print("prediction",0);
 	#else
 		time_measure_stop_and_print("prediction");
 	#endif
