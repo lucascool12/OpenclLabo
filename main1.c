@@ -7,7 +7,8 @@
 	Usage: ZFC_VGG16_CPU.exe <weights_path> <file_with_list_of_images> <output file> <output convolution features (optional)>
 	Example: ZFC_VGG16_CPU.exe "weights.txt" "image_list.txt" "results.txt" 1
 */
-
+//Tijs Van Kampen en Lucas Van Laer
+//versie 4d
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
