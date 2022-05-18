@@ -1,3 +1,5 @@
+//Tijs Van Kampen en Lucas Van Laer
+//versie 4d + dense
 #define SIZE 224
 #define NUM_CHANNELS 3
 #define CONV_SIZE 3
