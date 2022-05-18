@@ -317,7 +317,6 @@ void convolution_3_x_3_pll(int size, float matrix[][size], float kernelArray[][C
 
 	cl_int error;
 
-	//zeropad
 
 	//Leeg maken van zeropad
 	float pattrn[] = {0};
@@ -386,8 +385,7 @@ void add_bias_and_relu_pll(int size, float out[][size], float bs, int output_off
 
 }
 
-//laatste lagen traag doordat diepte heel hoog
-//opdit moment wacht
+
 void convolution_layer(int feature_size, int input_depth, int output_depth,
 					   float *input_features, float *layer_weights, float *layer_biases, float *output_features)
 {
@@ -414,26 +412,13 @@ void convolution_layer(int feature_size, int input_depth, int output_depth,
 							  output_it * input_depth * CONV_SIZE * CONV_SIZE + input_it * CONV_SIZE * CONV_SIZE,
 							  output_it * feature_size * feature_size);
 		}
-		// ocl_err(clFinish(g_command_queue));
-
 		add_bias_and_relu_pll(feature_size,
 							&output_features[output_it * feature_size * feature_size],
 							layer_biases[output_it], output_it * feature_size * feature_size);
 	}
-	// if(feature_size > 128)
 	ocl_err(clFinish(g_command_queue));
-		ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
-					0, output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL));
-
-	// for (int output_it = 0; output_it < output_depth; output_it++) {
-	// 	for (int input_it = 0; input_it < input_depth; input_it++) {
-	// 		convolution_3_x_3_pll(feature_size, &input_features[input_it * feature_size * feature_size],
-	// 						  &layer_weights[output_it * input_depth * CONV_SIZE * CONV_SIZE +
-	// 						  				 input_it * CONV_SIZE * CONV_SIZE],
-	// 						  &output_features[output_it * feature_size * feature_size]);
-	// 	}
-	// 	add_bias_and_relu_pll(feature_size, &output_features[output_it * feature_size * feature_size], layer_biases[output_it]);
-	// }
+	ocl_err(clEnqueueReadBuffer(g_command_queue, dev_out, CL_TRUE,
+				0, output_depth * feature_size * feature_size * sizeof(cl_float), output_features, 0, NULL, NULL));
 }
 
 void add_bias_and_relu_flatten(float *out, float *bs, int size, int relu) {
