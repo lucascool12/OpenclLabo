@@ -8,6 +8,8 @@
    <output file> <output convolution features (optional)> Example:
    ZFC_VGG16_CPU.exe "weights.txt" "image_list.txt" "results.txt" 1
 */
+//Tijs Van Kampen en Lucas Van Laer
+//Versie 4d + dense
 
 #include <math.h>
 #include <stdio.h>
